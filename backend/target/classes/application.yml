@@ -1,0 +1,110 @@
+spring:
+  application:
+    name: quan-ly-chi-tieu
+
+  # Database
+  datasource:
+    url: jdbc:mysql://localhost:3306/quanlychitieu?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true&characterEncoding=UTF-8&useUnicode=true
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:taiteasicale}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    defer-datasource-initialization: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+
+  # Seed data: đổi sang 'always' để chạy data.sql lần đầu, sau đó đổi lại 'never'
+  sql:
+    init:
+      mode: never
+
+  # Redis
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:taiteasicale}
+      timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
+
+  # Mail (for notifications)
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME:your-email@gmail.com}
+    password: ${MAIL_PASSWORD:your-app-password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  # Async thread pool
+  task:
+    execution:
+      pool:
+        core-size: 4
+        max-size: 8
+        queue-capacity: 100
+      thread-name-prefix: async-task-
+
+# Server
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+# JWT Config
+app:
+  jwt:
+    secret: ${JWT_SECRET:mySecretKeyForJwtTokenGenerationThatIsLongEnoughToBeSecure2024!@#$%}
+    expiration-ms: 86400000       # 24 hours
+    refresh-expiration-ms: 604800000  # 7 days
+
+# Logging
+logging:
+  level:
+    com.quanlychitieu: DEBUG
+    org.springframework.security: INFO
+
+# Actuator - expose health, metrics, info endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,caches
+  endpoint:
+    health:
+      show-details: when-authorized
+  info:
+    env:
+      enabled: true
+
+# App info for Actuator /info
+info:
+  app:
+    name: Quản Lý Chi Tiêu
+    description: Money Lover Clone - Student Project
+    version: 1.0.0
+    java-version: ${java.version}
+
+# Springdoc Swagger
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
