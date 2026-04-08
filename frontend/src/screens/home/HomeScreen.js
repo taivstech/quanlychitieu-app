@@ -4,7 +4,7 @@ import {
   Modal, TextInput, Animated, Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { BarChart } from 'react-native-chart-kit';
+
 import { useFocusEffect } from '@react-navigation/native';
 import { COLORS, FONTS, SIZES, SHADOWS, WALLET_COLORS } from '../../constants/theme';
 import { walletApi, reportApi, transactionApi, categoryApi, eventApi, notificationApi, authApi } from '../../api';
@@ -15,6 +15,44 @@ import { registerForPushNotificationsAsync } from '../../utils/pushNotifications
 
 const WALLET_ICONS = { CASH: 'cash', BANK_ACCOUNT: 'business', CREDIT_CARD: 'card', E_WALLET: 'phone-portrait' };
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+// Custom bar chart (thay thế react-native-chart-kit để tránh lỗi type casting)
+const SimpleBarChart = ({ periods, colors, formatVal }) => {
+  const C = colors;
+  const maxVal = Math.max(...periods.map(p => Math.max(p.expense, p.income)), 1);
+  const chartH = 130;
+  return (
+    <View style={{ marginTop: 8 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'flex-end', height: chartH, gap: 6, paddingHorizontal: 4 }}>
+        {periods.map((p, i) => {
+          const expH = Math.max((p.expense / maxVal) * chartH, p.expense > 0 ? 4 : 0);
+          const incH = Math.max((p.income / maxVal) * chartH, p.income > 0 ? 4 : 0);
+          return (
+            <View key={i} style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-end', height: chartH }}>
+              <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 2, marginBottom: 4 }}>
+                {p.income > 0 && (
+                  <View style={{ width: 7, height: incH, backgroundColor: '#10B981', borderRadius: 3 }} />
+                )}
+                <View style={{ width: 7, height: expH, backgroundColor: '#6366F1', borderRadius: 3 }} />
+              </View>
+              <Text style={{ fontSize: 9, color: C.textSecondary, textAlign: 'center' }}>{p.label}</Text>
+            </View>
+          );
+        })}
+      </View>
+      <View style={{ flexDirection: 'row', gap: 12, marginTop: 8, justifyContent: 'center' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <View style={{ width: 8, height: 8, backgroundColor: '#6366F1', borderRadius: 2 }} />
+          <Text style={{ fontSize: 11, color: C.textSecondary }}>Chi tiêu</Text>
+        </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <View style={{ width: 8, height: 8, backgroundColor: '#10B981', borderRadius: 2 }} />
+          <Text style={{ fontSize: 11, color: C.textSecondary }}>Thu nhập</Text>
+        </View>
+      </View>
+    </View>
+  );
+};
 
 const fmtLocal = (dt) => {
   const y = dt.getFullYear();
@@ -397,36 +435,9 @@ export default function HomeScreen({ navigation }) {
               </View>
             </View>
 
-            {/* Bar Chart */}
+            {/* Bar Chart - Custom */}
             {chartHasData && chartPeriods.length > 0 && (
-              <View style={st.chartWrap}>
-                <BarChart
-                  data={{
-                    labels: chartPeriods.map(p => p.label),
-                    datasets: [{ data: chartPeriods.map(p => p.expense || 0) }],
-                  }}
-                  width={SCREEN_WIDTH - 80}
-                  height={160}
-                  fromZero
-                  showValuesOnTopOfBars={false}
-                  withInnerLines={false}
-                  chartConfig={{
-                    backgroundColor: C.surface,
-                    backgroundGradientFrom: C.surface,
-                    backgroundGradientTo: C.surface,
-                    decimalPlaces: 0,
-                    color: (opacity = 1) => `rgba(99,102,241,${opacity})`,
-                    labelColor: () => C.textSecondary,
-                    barPercentage: 0.55,
-                    formatYLabel: formatChartVal,
-                    propsForLabels: { fontSize: 10 },
-                    propsForBackgroundLines: { stroke: C.borderLight, strokeDasharray: '' },
-                    fillShadowGradient: '#6366F1',
-                    fillShadowGradientOpacity: 1,
-                  }}
-                  style={{ borderRadius: SIZES.radiusSm, marginTop: SIZES.sm }}
-                />
-              </View>
+              <SimpleBarChart periods={chartPeriods} colors={C} formatVal={formatChartVal} />
             )}
           </View>
         </View>

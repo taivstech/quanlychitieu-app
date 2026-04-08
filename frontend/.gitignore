@@ -56,10 +56,3 @@ backend/target/
 *.iml
 .vscode/
 
-# =========================
-# Node / Expo (đã có)
-# =========================
-node_modules/
-.expo/
-dist/
-web-build/

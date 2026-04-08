@@ -4,13 +4,69 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import { LineChart, PieChart } from 'react-native-chart-kit';
+
 import { COLORS, FONTS, SIZES, SHADOWS } from '../../constants/theme';
 import { reportApi } from '../../api';
 import { formatCurrency, getCurrentMonth, getCurrentYear } from '../../utils/helpers';
 import { useTheme } from '../../contexts/ThemeContext';
 
 const screenWidth = Dimensions.get('window').width - SIZES.lg * 2;
+
+// Custom Pie chart (danh sách màu)
+const SimplePieChart = ({ data, colors: C }) => {
+  const total = data.reduce((s, d) => s + d.amount, 0);
+  return (
+    <View>
+      {data.map((d, i) => {
+        const pct = total > 0 ? ((d.amount / total) * 100).toFixed(1) : 0;
+        const barW = total > 0 ? (d.amount / total) * (screenWidth - SIZES.lg * 2) : 0;
+        return (
+          <View key={i} style={{ marginBottom: 8 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: d.color }} />
+                <Text style={{ fontSize: 12, color: C.text }}>{d.name}</Text>
+              </View>
+              <Text style={{ fontSize: 12, color: C.textSecondary }}>{pct}%</Text>
+            </View>
+            <View style={{ height: 6, backgroundColor: C.border, borderRadius: 3 }}>
+              <View style={{ height: 6, width: barW, backgroundColor: d.color, borderRadius: 3 }} />
+            </View>
+          </View>
+        );
+      })}
+    </View>
+  );
+};
+
+// Custom line chart đơn giản bằng dots
+const SimpleLineChart = ({ labels, data, colors: C }) => {
+  const maxV = Math.max(...data, 1);
+  const chartH = 120;
+  const W = screenWidth - SIZES.lg * 2;
+  const pts = data.map((v, i) => ({
+    x: data.length > 1 ? (i / (data.length - 1)) * W : W / 2,
+    y: chartH - (v / maxV) * (chartH - 10),
+    v,
+  }));
+  const formatV = (v) => v >= 1000000 ? (v/1000000).toFixed(1)+'M' : v >= 1000 ? (v/1000).toFixed(0)+'K' : String(v);
+  return (
+    <View>
+      <View style={{ height: chartH, marginBottom: 4 }}>
+        {pts.map((pt, i) => (
+          <View key={i} style={{ position: 'absolute', left: pt.x - 4, top: pt.y - 4,
+            width: 8, height: 8, borderRadius: 4, backgroundColor: '#EF4444',
+            borderWidth: 2, borderColor: '#FCA5A5' }} />
+        ))}
+      </View>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        {labels.map((l, i) => (
+          <Text key={i} style={{ fontSize: 10, color: C.textSecondary, textAlign: 'center', flex: 1 }}>{l}</Text>
+        ))}
+      </View>
+    </View>
+  );
+};
 
 export default function ReportScreen() {
   const { colors } = useTheme();
@@ -83,20 +139,10 @@ export default function ReportScreen() {
             </Text>
           </View>
 
-          {/* Expense Pie Chart */}
           {pieData.length > 0 && (
             <View style={[styles.chartCard, { backgroundColor: C.surface }]}>
               <Text style={[styles.chartTitle, { color: C.text }]}>Chi tiêu theo danh mục</Text>
-              <PieChart
-                data={pieData}
-                width={screenWidth}
-                height={200}
-                chartConfig={{ color: () => C.primary }}
-                accessor="amount"
-                backgroundColor="transparent"
-                paddingLeft="0"
-                absolute
-              />
+              <SimplePieChart data={pieData} colors={C} />
             </View>
           )}
 
@@ -104,21 +150,7 @@ export default function ReportScreen() {
           {lineData.length > 0 && lineData.some((v) => v > 0) && (
             <View style={[styles.chartCard, { backgroundColor: C.surface }]}>
               <Text style={[styles.chartTitle, { color: C.text }]}>Chi tiêu 7 ngày gần nhất</Text>
-              <LineChart
-                data={{ labels: lineLabels, datasets: [{ data: lineData.length > 0 ? lineData : [0] }] }}
-                width={screenWidth}
-                height={200}
-                chartConfig={{
-                  backgroundColor: C.surface,
-                  backgroundGradientFrom: C.surface,
-                  backgroundGradientTo: C.surface,
-                  decimalPlaces: 0,
-                  color: (opacity = 1) => `rgba(244, 67, 54, ${opacity})`,
-                  labelColor: () => C.textSecondary,
-                }}
-                bezier
-                style={{ borderRadius: SIZES.radiusSm }}
-              />
+              <SimpleLineChart labels={lineLabels} data={lineData} colors={C} />
             </View>
           )}
 

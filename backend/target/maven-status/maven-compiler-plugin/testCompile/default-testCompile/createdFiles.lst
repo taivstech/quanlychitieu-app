@@ -1,9 +1,0 @@
-com\quanlychitieu\service\WalletServiceTest$TransferTests.class
-com\quanlychitieu\service\WalletServiceTest$UpdateBalanceTests.class
-com\quanlychitieu\service\SavingGoalServiceTest$WithdrawMoneyTests.class
-com\quanlychitieu\service\AuthServiceTest.class
-com\quanlychitieu\service\SavingGoalServiceTest$AddMoneyTests.class
-com\quanlychitieu\service\SavingGoalServiceTest.class
-com\quanlychitieu\service\WalletServiceTest.class
-com\quanlychitieu\service\WalletServiceTest$CreateWalletTests.class
-com\quanlychitieu\service\WalletServiceTest$DeleteWalletTests.class

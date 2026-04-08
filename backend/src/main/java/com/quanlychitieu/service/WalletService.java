@@ -130,6 +130,23 @@ public class WalletService {
         Wallet wallet = walletRepository.findByIdAndUserIdForUpdate(walletId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy ví"));
 
+        applyBalanceChange(wallet, amount, isExpense);
+        walletRepository.save(wallet);
+    }
+
+    /**
+     * Cập nhật số dư không cần auth context - dùng cho scheduler/background tasks.
+     */
+    @Transactional
+    public void updateBalanceInternal(Long walletId, BigDecimal amount, boolean isExpense) {
+        Wallet wallet = walletRepository.findById(walletId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy ví: " + walletId));
+
+        applyBalanceChange(wallet, amount, isExpense);
+        walletRepository.save(wallet);
+    }
+
+    private void applyBalanceChange(Wallet wallet, BigDecimal amount, boolean isExpense) {
         if (isExpense) {
             BigDecimal newBalance = wallet.getBalance().subtract(amount);
             if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
@@ -141,7 +158,6 @@ public class WalletService {
         } else {
             wallet.setBalance(wallet.getBalance().add(amount));
         }
-        walletRepository.save(wallet);
     }
 
     @Transactional

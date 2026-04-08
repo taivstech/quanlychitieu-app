@@ -119,8 +119,8 @@ public class RecurringTransactionService {
 
             transactionRepository.save(transaction);
 
-            // Update wallet balance
-            walletService.updateBalance(recurring.getWallet().getId(),
+            // Update wallet balance (dùng internal để tránh lỗi auth trong scheduler)
+            walletService.updateBalanceInternal(recurring.getWallet().getId(),
                     recurring.getAmount(),
                     recurring.getType() == TransactionType.EXPENSE);
 

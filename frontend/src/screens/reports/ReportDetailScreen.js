@@ -5,13 +5,54 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import Svg, { Path, Circle as SvgCircle, G } from 'react-native-svg';
-import { BarChart } from 'react-native-chart-kit';
+
 import { COLORS, SIZES } from '../../constants/theme';
 import { reportApi, transactionApi, walletApi } from '../../api';
 import { formatCurrency, getCurrentMonth, getCurrentYear, getCategoryIcon } from '../../utils/helpers';
 import { useTheme } from '../../contexts/ThemeContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+// Custom bar chart thay thế react-native-chart-kit
+const SimpleBarChart = ({ periods, height = 160 }) => {
+  const maxVal = Math.max(...periods.map(p => Math.max(p.expense || 0, p.income || 0)), 1);
+  const chartH = height - 30;
+  const fmtV = (v) => v >= 1000000 ? (v/1000000).toFixed(1)+'M' : v >= 1000 ? (v/1000).toFixed(0)+'K' : '0';
+  return (
+    <View style={{ marginVertical: 8 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'flex-end', height: chartH, gap: 4, paddingHorizontal: 4 }}>
+        {periods.map((p, i) => {
+          const expH = Math.max(((p.expense||0) / maxVal) * chartH, (p.expense||0) > 0 ? 3 : 0);
+          const incH = Math.max(((p.income||0) / maxVal) * chartH, (p.income||0) > 0 ? 3 : 0);
+          return (
+            <View key={i} style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-end', height: chartH }}>
+              <Text style={{ fontSize: 8, color: '#9CA3AF', marginBottom: 2 }} numberOfLines={1}>{fmtV(p.expense||0)}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 2 }}>
+                {(p.income||0) > 0 && <View style={{ width: 8, height: incH, backgroundColor: '#10B981', borderRadius: 3 }} />}
+                <View style={{ width: 8, height: expH, backgroundColor: '#EF4444', borderRadius: 3 }} />
+              </View>
+            </View>
+          );
+        })}
+      </View>
+      <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 4, paddingHorizontal: 4, marginTop: 4 }}>
+        {periods.map((p, i) => (
+          <Text key={i} style={{ flex: 1, fontSize: 8, color: '#6B7280', textAlign: 'center' }} numberOfLines={1}>{p.label}</Text>
+        ))}
+      </View>
+      <View style={{ flexDirection: 'row', gap: 12, marginTop: 8, justifyContent: 'center' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <View style={{ width: 8, height: 8, backgroundColor: '#EF4444', borderRadius: 2 }} />
+          <Text style={{ fontSize: 11, color: '#6B7280' }}>Chi tiêu</Text>
+        </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <View style={{ width: 8, height: 8, backgroundColor: '#10B981', borderRadius: 2 }} />
+          <Text style={{ fontSize: 11, color: '#6B7280' }}>Thu nhập</Text>
+        </View>
+      </View>
+    </View>
+  );
+};
 
 // ── Helpers ──
 
@@ -313,13 +354,6 @@ export default function ReportDetailScreen({ route, navigation }) {
     percentage: Number(cat.percentage) || 0,
   }));
 
-  // Trend chart data — compare periods
-  const barChartData = trendPeriods.length > 0 ? {
-    labels: trendPeriods.map(p => p.label),
-    datasets: [
-      { data: trendPeriods.map(p => p.expense || 0) },
-    ],
-  } : null;
   const trendTotalIncome = trendPeriods.reduce((s, p) => s + p.income, 0);
   const trendTotalExpense = trendPeriods.reduce((s, p) => s + p.expense, 0);
 
@@ -555,35 +589,9 @@ export default function ReportDetailScreen({ route, navigation }) {
         </View>
       </View>
 
-      {/* Bar Chart — compare across periods */}
-      {barChartData && trendPeriods.length > 0 ? (
+      {trendPeriods.length > 0 ? (
         <View style={styles.card}>
-          <BarChart
-            data={barChartData}
-            width={SCREEN_WIDTH - SIZES.md * 4}
-            height={220}
-            fromZero
-            showValuesOnTopOfBars={false}
-            withInnerLines
-            chartConfig={{
-              backgroundColor: COLORS.surface,
-              backgroundGradientFrom: COLORS.surface,
-              backgroundGradientTo: COLORS.surface,
-              decimalPlaces: 0,
-              color: (opacity = 1) => `rgba(244, 67, 54, ${opacity})`,
-              labelColor: () => COLORS.textSecondary,
-              barPercentage: 0.5,
-              propsForLabels: { fontSize: 10 },
-              propsForBackgroundLines: { stroke: COLORS.border, strokeDasharray: '4,4' },
-              formatYLabel: (v) => {
-                const n = Number(v);
-                if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
-                if (n >= 1000) return (n / 1000).toFixed(0) + 'K';
-                return String(n);
-              },
-            }}
-            style={{ borderRadius: SIZES.radiusSm }}
-          />
+          <SimpleBarChart periods={trendPeriods} height={220} />
         </View>
       ) : (
         <View style={styles.emptyContainer}>
