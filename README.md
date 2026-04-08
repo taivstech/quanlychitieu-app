@@ -318,6 +318,9 @@ Request → [Layer 1] Rate Limiting (100 req/min/IP)
 
 ## 🚀 Hướng dẫn chạy
 
+> [!IMPORTANT]
+> **Hướng dẫn chi tiết**: Để setup ứng dụng trên máy tính mới từ đầu (cài Java, Node, MySQL, Redis...), vui lòng xem file [**SETUP_GUIDE.md**](file:///d:/Projects/QuanLyChiTieu/SETUP_GUIDE.md).
+
 ### Yêu cầu
 - Java 17+
 - Node.js 18+
