@@ -1,12 +1,15 @@
 package com.quanlychitieu.service;
 
 import com.quanlychitieu.dto.request.BillRequest;
+import com.quanlychitieu.dto.request.TransactionRequest;
 import com.quanlychitieu.dto.response.BillResponse;
 import com.quanlychitieu.exception.ResourceNotFoundException;
+import com.quanlychitieu.exception.BadRequestException;
 import com.quanlychitieu.model.entity.Bill;
 import com.quanlychitieu.model.entity.Category;
 import com.quanlychitieu.model.entity.User;
 import com.quanlychitieu.model.entity.Wallet;
+import com.quanlychitieu.model.enums.TransactionType;
 import com.quanlychitieu.repository.BillRepository;
 import com.quanlychitieu.repository.CategoryRepository;
 import com.quanlychitieu.repository.WalletRepository;
@@ -28,6 +31,7 @@ public class BillService {
     private final BillRepository billRepository;
     private final CategoryRepository categoryRepository;
     private final WalletRepository walletRepository;
+    private final TransactionService transactionService;
     private final SecurityUtils securityUtils;
 
     public List<BillResponse> getAllBills() {
@@ -116,8 +120,26 @@ public class BillService {
         Bill bill = billRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy hóa đơn"));
 
-        // Advance due date to next cycle
+        if (bill.getWallet() == null || bill.getCategory() == null) {
+            throw new BadRequestException("Hóa đơn cần phải liên kết với Ví và Danh mục để thanh toán tự động.");
+        }
+
+        // Tạo giao dịch chi tiêu tương ứng
+        TransactionRequest transactionRequest = new TransactionRequest();
+        transactionRequest.setAmount(bill.getAmount());
+        transactionRequest.setType(TransactionType.EXPENSE);
+        transactionRequest.setNote("[Thanh toán hóa đơn] " + bill.getName());
+        transactionRequest.setTransactionDate(LocalDate.now());
+        transactionRequest.setCategoryId(bill.getCategory().getId());
+        transactionRequest.setWalletId(bill.getWallet().getId());
+        transactionRequest.setExcludeFromReport(false);
+        
+        transactionService.createTransaction(transactionRequest);
+
+        // Chuyển due date sang chu kỳ tiếp theo
         bill.setDueDate(bill.getNextDueDate());
+        
+        log.info("Bill marked as paid and transaction created for bill id: {}", id);
         return toResponse(billRepository.save(bill));
     }
 

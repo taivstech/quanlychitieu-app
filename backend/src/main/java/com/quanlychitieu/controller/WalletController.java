@@ -1,8 +1,10 @@
 package com.quanlychitieu.controller;
 
 import com.quanlychitieu.dto.request.TransferRequest;
+import com.quanlychitieu.dto.request.WalletInviteRequest;
 import com.quanlychitieu.dto.request.WalletRequest;
 import com.quanlychitieu.dto.response.ApiResponse;
+import com.quanlychitieu.dto.response.WalletMemberResponse;
 import com.quanlychitieu.dto.response.WalletResponse;
 import com.quanlychitieu.service.WalletService;
 import jakarta.validation.Valid;
@@ -64,5 +66,32 @@ public class WalletController {
     public ResponseEntity<ApiResponse<Void>> transfer(@Valid @RequestBody TransferRequest request) {
         walletService.transfer(request);
         return ResponseEntity.ok(ApiResponse.success("Transfer successful", null));
+    }
+
+    @PostMapping("/{id}/invite")
+    public ResponseEntity<ApiResponse<Void>> inviteMember(
+            @PathVariable Long id,
+            @Valid @RequestBody WalletInviteRequest request) {
+        walletService.inviteMember(id, request);
+        return ResponseEntity.ok(ApiResponse.success("Đã gửi lời mời tham gia ví", null));
+    }
+
+    @PostMapping("/invites/{memberId}/respond")
+    public ResponseEntity<ApiResponse<Void>> respondToInvite(
+            @PathVariable Long memberId,
+            @RequestParam boolean accept) {
+        walletService.respondToInvite(memberId, accept);
+        String message = accept ? "Đã chấp nhận lời mời" : "Đã từ chối lời mời";
+        return ResponseEntity.ok(ApiResponse.success(message, null));
+    }
+
+    @GetMapping("/{id}/members")
+    public ResponseEntity<ApiResponse<List<WalletMemberResponse>>> getWalletMembers(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(walletService.getWalletMembers(id)));
+    }
+
+    @GetMapping("/pending-invites")
+    public ResponseEntity<ApiResponse<List<WalletMemberResponse>>> getPendingInvites() {
+        return ResponseEntity.ok(ApiResponse.success(walletService.getPendingInvites()));
     }
 }

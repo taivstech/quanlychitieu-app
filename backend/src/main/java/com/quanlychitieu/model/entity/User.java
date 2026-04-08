@@ -53,6 +53,9 @@ public class User implements Serializable {
     @Builder.Default
     private List<Category> categories = new ArrayList<>();
 
+    @Column(name = "expo_push_token")
+    private String expoPushToken;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 

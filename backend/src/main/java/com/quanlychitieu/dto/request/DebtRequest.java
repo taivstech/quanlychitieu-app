@@ -22,4 +22,5 @@ public class DebtRequest {
 
     private String note;
     private LocalDate dueDate;
+    private Long walletId;
 }

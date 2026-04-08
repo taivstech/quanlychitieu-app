@@ -118,6 +118,15 @@ public class AuthService {
         log.info("User {} changed password", userId);
     }
 
+    @Transactional
+    public void updatePushToken(Long userId, String pushToken) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));
+        user.setExpoPushToken(pushToken);
+        userRepository.save(user);
+        log.info("Updated push token for user {}", userId);
+    }
+
     private UserResponse toUserResponse(User user) {
         return UserResponse.builder()
                 .id(user.getId())

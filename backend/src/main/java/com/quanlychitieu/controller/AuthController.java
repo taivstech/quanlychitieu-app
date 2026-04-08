@@ -50,4 +50,12 @@ public class AuthController {
         authService.changePassword(userId, request);
         return ResponseEntity.ok(ApiResponse.success("Đổi mật khẩu thành công", null));
     }
+
+    @PutMapping("/push-token")
+    public ResponseEntity<ApiResponse<Void>> updatePushToken(
+            @Valid @RequestBody com.quanlychitieu.dto.request.PushTokenRequest request) {
+        Long userId = securityUtils.getCurrentUserId();
+        authService.updatePushToken(userId, request.getPushToken());
+        return ResponseEntity.ok(ApiResponse.success("Cập nhật push token thành công", null));
+    }
 }

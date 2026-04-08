@@ -73,8 +73,18 @@ public class DebtService {
                 .dueDate(request.getDueDate())
                 .user(currentUser)
                 .build();
+        debt = debtRepository.save(debt);
 
-        return toResponse(debtRepository.save(debt));
+        // Update wallet balance if walletId provided
+        if (request.getWalletId() != null) {
+            // LOAN: Cho vay -> subtract (money leaves wallet)
+            // DEBT: Đi vay -> add (money enters wallet)
+            boolean isSubtract = request.getType() == DebtType.LOAN;
+            walletService.updateBalance(request.getWalletId(), request.getAmount(), isSubtract);
+            log.info("Wallet {} updated due to new {}: {}", request.getWalletId(), request.getType(), request.getAmount());
+        }
+
+        return toResponse(debt);
     }
 
     @Transactional

@@ -21,4 +21,5 @@ public class WalletResponse {
     private String icon;
     private String color;
     private Boolean includeInTotal;
+    private Boolean isShared;
 }

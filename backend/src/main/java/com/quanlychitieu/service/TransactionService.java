@@ -6,10 +6,9 @@ import com.quanlychitieu.event.TransactionCreatedEvent;
 import com.quanlychitieu.exception.ResourceNotFoundException;
 import com.quanlychitieu.model.entity.*;
 import com.quanlychitieu.model.enums.TransactionType;
-import com.quanlychitieu.repository.CategoryRepository;
-import com.quanlychitieu.repository.EventRepository;
-import com.quanlychitieu.repository.TransactionRepository;
-import com.quanlychitieu.repository.WalletRepository;
+import com.quanlychitieu.model.enums.WalletMemberStatus;
+import com.quanlychitieu.model.enums.WalletRole;
+import com.quanlychitieu.repository.*;
 import com.quanlychitieu.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +32,7 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final CategoryRepository categoryRepository;
     private final WalletRepository walletRepository;
+    private final WalletMemberRepository walletMemberRepository;
     private final EventRepository eventRepository;
     private final WalletService walletService;
     private final ApplicationEventPublisher eventPublisher;
@@ -75,8 +75,19 @@ public class TransactionService {
 
         Category category = categoryRepository.findByIdAndUserIdOrDefault(request.getCategoryId(), userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy danh mục"));
-        Wallet wallet = walletRepository.findByIdAndUserId(request.getWalletId(), userId)
+        
+        Wallet wallet = walletRepository.findById(request.getWalletId())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy ví"));
+
+        // Kiểm tra quyền trên ví: Chủ ví HOẶC Editor
+        boolean isOwner = wallet.getUser().getId().equals(userId);
+        boolean canEdit = isOwner || walletMemberRepository.findByWalletIdAndUserId(wallet.getId(), userId)
+                .map(m -> m.getStatus() == WalletMemberStatus.ACCEPTED && m.getRole() != WalletRole.VIEWER)
+                .orElse(false);
+
+        if (!canEdit) {
+            throw new com.quanlychitieu.exception.BadRequestException("Bạn không có quyền thêm giao dịch vào ví này");
+        }
 
         Transaction transaction = Transaction.builder()
                 .amount(request.getAmount())

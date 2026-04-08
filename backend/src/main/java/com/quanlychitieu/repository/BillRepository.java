@@ -15,6 +15,8 @@ public interface BillRepository extends JpaRepository<Bill, Long> {
     List<Bill> findByUserIdOrderByDueDateAsc(Long userId);
 
     List<Bill> findByUserIdAndActiveTrueOrderByDueDateAsc(Long userId);
+    
+    List<Bill> findByActiveTrue();
 
     Optional<Bill> findByIdAndUserId(Long id, Long userId);
 

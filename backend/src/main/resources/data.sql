@@ -27,10 +27,10 @@ INSERT INTO categories (name, type, icon, color, is_default, user_id) VALUES
     ('Khác', 'INCOME', 'cash', '#1ABC9C', true, 1);
 
 -- Ví tiền (user demo)
-INSERT INTO wallets (name, type, balance, currency, icon, color, include_in_total, user_id, created_at, updated_at) VALUES
-    ('Tiền mặt', 'CASH', 2500000.00, 'VND', 'wallet', '#4CAF50', true, 1, NOW(), NOW()),
-    ('Vietcombank', 'BANK', 15000000.00, 'VND', 'business', '#1565C0', true, 1, NOW(), NOW()),
-    ('Momo', 'E_WALLET', 500000.00, 'VND', 'phone-portrait', '#A50064', true, 1, NOW(), NOW());
+INSERT INTO wallets (name, type, balance, currency, icon, color, include_in_total, version, user_id, created_at, updated_at) VALUES
+    ('Tiền mặt', 'CASH', 2500000.00, 'VND', 'wallet', '#4CAF50', true, 0, 1, NOW(), NOW()),
+    ('Vietcombank', 'BANK', 15000000.00, 'VND', 'business', '#1565C0', true, 0, 1, NOW(), NOW()),
+    ('Momo', 'E_WALLET', 500000.00, 'VND', 'phone-portrait', '#A50064', true, 0, 1, NOW(), NOW());
 
 -- Giao dịch mẫu (tháng hiện tại - user demo)
 INSERT INTO transactions (amount, type, note, transaction_date, category_id, wallet_id, user_id, exclude_from_report, created_at) VALUES
@@ -52,14 +52,14 @@ INSERT INTO budgets (amount, spent_amount, month, year, category_id, user_id, cr
     (1000000, 150000, MONTH(CURDATE()), YEAR(CURDATE()), 3, 1, NOW(), NOW());
 
 -- Mục tiêu tiết kiệm (user demo)
-INSERT INTO saving_goals (name, target_amount, current_amount, icon, color, target_date, completed, user_id, created_at, updated_at) VALUES
-    ('Mua iPhone 16', 25000000, 8000000, 'phone-portrait', '#333333', '2026-06-30', false, 1, NOW(), NOW()),
-    ('Du lịch Đà Lạt', 5000000, 3200000, 'airplane', '#FF9800', '2026-08-15', false, 1, NOW(), NOW());
+INSERT INTO saving_goals (name, target_amount, current_amount, icon, color, target_date, completed, version, user_id, created_at, updated_at) VALUES
+    ('Mua iPhone 16', 25000000, 8000000, 'phone-portrait', '#333333', '2026-06-30', false, 0, 1, NOW(), NOW()),
+    ('Du lịch Đà Lạt', 5000000, 3200000, 'airplane', '#FF9800', '2026-08-15', false, 0, 1, NOW(), NOW());
 
 -- Nợ / Cho vay (user demo)
-INSERT INTO debts (type, person_name, amount, paid_amount, note, due_date, completed, user_id, created_at, updated_at) VALUES
-    ('DEBT', 'Anh Minh', 1000000, 400000, 'Mượn tiền mua laptop', '2026-05-01', false, 1, NOW(), NOW()),
-    ('LOAN', 'Chị Hương', 500000, 0, 'Cho mượn tiền ăn', '2026-04-15', false, 1, NOW(), NOW());
+INSERT INTO debts (type, person_name, amount, paid_amount, note, due_date, completed, version, user_id, created_at, updated_at) VALUES
+    ('DEBT', 'Anh Minh', 1000000, 400000, 'Mượn tiền mua laptop', '2026-05-01', false, 0, 1, NOW(), NOW()),
+    ('LOAN', 'Chị Hương', 500000, 0, 'Cho mượn tiền ăn', '2026-04-15', false, 0, 1, NOW(), NOW());
 
 -- Giao dịch định kỳ (user demo)
 INSERT INTO recurring_transactions (amount, type, note, frequency, start_date, next_execution_date, active, category_id, wallet_id, user_id, created_at) VALUES
@@ -88,8 +88,8 @@ WHERE u.username = 'taivs93'
         WHERE c.user_id = u.id AND c.name = 'Lương' AND c.type = 'INCOME'
     );
 
-INSERT INTO wallets (name, type, balance, currency, icon, color, include_in_total, user_id, created_at, updated_at)
-SELECT 'Ví chính', 'CASH', 1500000.00, 'VND', 'wallet', '#4CAF50', true, u.id, NOW(), NOW()
+INSERT INTO wallets (name, type, balance, currency, icon, color, include_in_total, version, user_id, created_at, updated_at)
+SELECT 'Ví chính', 'CASH', 1500000.00, 'VND', 'wallet', '#4CAF50', true, 0, u.id, NOW(), NOW()
 FROM users u
 WHERE u.username = 'taivs93'
     AND NOT EXISTS (

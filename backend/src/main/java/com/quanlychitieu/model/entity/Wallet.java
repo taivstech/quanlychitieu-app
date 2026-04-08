@@ -60,6 +60,14 @@ public class Wallet implements Serializable {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Builder.Default
+    @Column(name = "is_shared", nullable = false)
+    private Boolean isShared = false;
+
+    @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL)
+    @Builder.Default
+    private List<WalletMember> members = new ArrayList<>();
+
     @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL)
     @Builder.Default
     private List<Transaction> transactions = new ArrayList<>();
