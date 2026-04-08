@@ -80,6 +80,10 @@
 | **Swagger/OpenAPI** | Tự động tạo API documentation |
 | **Actuator** | Health check, metrics monitoring |
 | **Docker** | Multi-stage build, docker-compose cho toàn bộ hệ thống |
+| **Soft Delete** | `@SQLDelete` + `@SQLRestriction` — xóa mềm, giữ lịch sử dữ liệu |
+| **Rate Limiting** | Fixed Window Counter — chống spam API (100 req/phút/IP) |
+| **Audit Log (AOP)** | Tự động ghi lại mọi thao tác CREATE/UPDATE/DELETE |
+| **Budget Rollover** | Dư ngân sách tháng trước chuyển sang tháng sau |
 
 ## 🚀 Hướng dẫn chạy
 
@@ -150,10 +154,10 @@ QuanLyChiTieu/
 │       │   └── response/    # 10 Response DTOs
 │       ├── security/        # JWT Filter, Provider, Utils
 │       ├── exception/       # Global Exception Handler
-│       ├── aspect/          # AOP Logging + Performance
+│       ├── aspect/          # AOP Logging + Performance + Audit
 │       ├── event/           # Spring Application Events
 │       ├── validation/      # Custom Validator
-│       └── scheduler/       # Cron Job
+│       └── scheduler/       # Cron Jobs (Recurring, Bill, Debt Reminder)
 │
 ├── frontend/
 │   └── src/

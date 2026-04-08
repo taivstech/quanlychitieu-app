@@ -20,4 +20,7 @@ public class BudgetRequest {
 
     @NotNull(message = "Năm không được để trống")
     private Integer year;
+
+    /** Cho phép dư ngân sách chuyển sang tháng sau */
+    private Boolean rolloverEnabled;
 }

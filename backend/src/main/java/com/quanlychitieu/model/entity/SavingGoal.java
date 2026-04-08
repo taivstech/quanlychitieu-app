@@ -3,6 +3,8 @@ package com.quanlychitieu.model.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.io.Serializable;
@@ -12,6 +14,8 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "saving_goals")
+@SQLDelete(sql = "UPDATE saving_goals SET deleted_at = NOW() WHERE id = ?")
+@SQLRestriction("deleted_at IS NULL")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -46,6 +50,7 @@ public class SavingGoal implements Serializable {
     private Boolean completed = false;
 
     @Version
+    @Builder.Default
     private Long version = 0L;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -57,6 +62,9 @@ public class SavingGoal implements Serializable {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 
     public BigDecimal getRemainingAmount() {
         return targetAmount.subtract(currentAmount);

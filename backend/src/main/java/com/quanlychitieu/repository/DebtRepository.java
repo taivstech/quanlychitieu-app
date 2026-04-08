@@ -37,4 +37,17 @@ public interface DebtRepository extends JpaRepository<Debt, Long> {
             @Param("deadline") java.time.LocalDate deadline);
 
     long countByUserIdAndCompletedFalse(Long userId);
+
+    // Tất cả nợ sắp đến hạn (cho scheduler — không filter userId)
+    @Query("SELECT d FROM Debt d WHERE d.completed = false " +
+            "AND d.dueDate IS NOT NULL AND d.dueDate BETWEEN :today AND :deadline " +
+            "ORDER BY d.dueDate ASC")
+    List<Debt> findUpcomingDebts(
+            @Param("today") java.time.LocalDate today,
+            @Param("deadline") java.time.LocalDate deadline);
+
+    // Tất cả nợ đã quá hạn (cho scheduler)
+    @Query("SELECT d FROM Debt d WHERE d.completed = false " +
+            "AND d.dueDate IS NOT NULL AND d.dueDate < :today")
+    List<Debt> findOverdueDebts(@Param("today") java.time.LocalDate today);
 }

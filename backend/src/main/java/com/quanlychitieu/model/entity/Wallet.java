@@ -4,6 +4,8 @@ import com.quanlychitieu.model.enums.WalletType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.io.Serializable;
@@ -14,6 +16,8 @@ import java.util.List;
 
 @Entity
 @Table(name = "wallets")
+@SQLDelete(sql = "UPDATE wallets SET deleted_at = NOW() WHERE id = ?")
+@SQLRestriction("deleted_at IS NULL")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -54,6 +58,7 @@ public class Wallet implements Serializable {
      * Hibernate auto-check version trước khi UPDATE → nếu mismatch → OptimisticLockException
      */
     @Version
+    @Builder.Default
     private Long version = 0L;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -77,4 +82,7 @@ public class Wallet implements Serializable {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 }

@@ -4,6 +4,8 @@ import com.quanlychitieu.model.enums.TransactionType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.io.Serializable;
@@ -17,6 +19,8 @@ import java.time.LocalDateTime;
         @Index(name = "idx_transaction_category", columnList = "category_id"),
         @Index(name = "idx_transaction_wallet", columnList = "wallet_id")
 })
+@SQLDelete(sql = "UPDATE transactions SET deleted_at = NOW() WHERE id = ?")
+@SQLRestriction("deleted_at IS NULL")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -69,4 +73,8 @@ public class Transaction implements Serializable {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    /** Soft Delete: NULL = active, có giá trị = đã xóa */
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 }

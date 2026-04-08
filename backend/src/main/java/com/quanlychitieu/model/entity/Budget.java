@@ -38,6 +38,16 @@ public class Budget implements Serializable {
     @Column(nullable = false)
     private Integer year;
 
+    /** Cho phép dư ngân sách tháng trước chuyển sang tháng sau */
+    @Builder.Default
+    @Column(name = "rollover_enabled", nullable = false)
+    private Boolean rolloverEnabled = false;
+
+    /** Số tiền dư từ tháng trước chuyển sang (nếu rollover enabled) */
+    @Builder.Default
+    @Column(name = "rollover_amount", precision = 15, scale = 2)
+    private BigDecimal rolloverAmount = BigDecimal.ZERO;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
@@ -53,15 +63,24 @@ public class Budget implements Serializable {
     private LocalDateTime updatedAt;
 
     public BigDecimal getRemainingAmount() {
-        return amountLimit.subtract(spentAmount);
+        return getEffectiveLimit().subtract(spentAmount);
+    }
+
+    /** Hạn mức thực tế = hạn mức gốc + dư tháng trước (nếu rollover) */
+    public BigDecimal getEffectiveLimit() {
+        if (Boolean.TRUE.equals(rolloverEnabled) && rolloverAmount != null) {
+            return amountLimit.add(rolloverAmount);
+        }
+        return amountLimit;
     }
 
     public double getUsagePercentage() {
-        if (amountLimit.compareTo(BigDecimal.ZERO) == 0) return 0;
-        return spentAmount.doubleValue() / amountLimit.doubleValue() * 100;
+        BigDecimal limit = getEffectiveLimit();
+        if (limit.compareTo(BigDecimal.ZERO) == 0) return 0;
+        return spentAmount.doubleValue() / limit.doubleValue() * 100;
     }
 
     public boolean isOverBudget() {
-        return spentAmount.compareTo(amountLimit) > 0;
+        return spentAmount.compareTo(getEffectiveLimit()) > 0;
     }
 }

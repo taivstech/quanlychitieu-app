@@ -22,4 +22,8 @@ public interface SavingGoalRepository extends JpaRepository<SavingGoal, Long> {
     Optional<SavingGoal> findByIdAndUserIdForUpdate(@Param("id") Long id, @Param("userId") Long userId);
 
     long countByUserIdAndCompletedFalse(Long userId);
+
+    // Mục tiêu tiết kiệm sắp hết hạn (cho scheduler)
+    List<SavingGoal> findByCompletedFalseAndTargetDateBetween(
+            java.time.LocalDate start, java.time.LocalDate end);
 }

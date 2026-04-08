@@ -228,9 +228,10 @@ public class TransactionService {
 
         duplicate = transactionRepository.save(duplicate);
 
-        // Update wallet balance
-        walletService.updateBalance(duplicate.getWallet().getId(), duplicate.getAmount(),
-                duplicate.getType() == TransactionType.EXPENSE);
+        // Update wallet balance (EXPENSE → subtract, LOAN "Cho vay" → subtract)
+        boolean isSubtractDup = duplicate.getType() == TransactionType.EXPENSE
+                || (duplicate.getType() == TransactionType.LOAN && "Cho vay".equals(duplicate.getCategory().getName()));
+        walletService.updateBalance(duplicate.getWallet().getId(), duplicate.getAmount(), isSubtractDup);
 
         // Publish event
         eventPublisher.publishEvent(new TransactionCreatedEvent(

@@ -24,4 +24,7 @@ public class BudgetResponse {
     private Long categoryId;
     private String categoryIcon;
     private String categoryColor;
+    private boolean rolloverEnabled;
+    private BigDecimal rolloverAmount;
+    private BigDecimal effectiveLimit;
 }

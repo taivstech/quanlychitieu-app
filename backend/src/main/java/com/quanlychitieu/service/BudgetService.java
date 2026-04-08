@@ -54,11 +54,21 @@ public class BudgetService {
         BigDecimal spentAmount = transactionRepository.sumExpenseByCategoryAndMonth(
                 userId, request.getCategoryId(), request.getMonth(), request.getYear());
 
+        // Tính rollover từ tháng trước (nếu bật)
+        BigDecimal rolloverAmount = BigDecimal.ZERO;
+        boolean rolloverEnabled = Boolean.TRUE.equals(request.getRolloverEnabled());
+        if (rolloverEnabled) {
+            rolloverAmount = calculateRollover(userId, request.getCategoryId(),
+                    request.getMonth(), request.getYear());
+        }
+
         Budget budget = Budget.builder()
                 .amountLimit(request.getAmountLimit())
                 .spentAmount(spentAmount)
                 .month(request.getMonth())
                 .year(request.getYear())
+                .rolloverEnabled(rolloverEnabled)
+                .rolloverAmount(rolloverAmount)
                 .category(category)
                 .user(currentUser)
                 .build();
@@ -73,6 +83,15 @@ public class BudgetService {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy ngân sách"));
 
         budget.setAmountLimit(request.getAmountLimit());
+        if (request.getRolloverEnabled() != null) {
+            budget.setRolloverEnabled(request.getRolloverEnabled());
+            if (Boolean.TRUE.equals(request.getRolloverEnabled())) {
+                budget.setRolloverAmount(calculateRollover(userId,
+                        budget.getCategory().getId(), budget.getMonth(), budget.getYear()));
+            } else {
+                budget.setRolloverAmount(BigDecimal.ZERO);
+            }
+        }
         return toResponse(budgetRepository.save(budget));
     }
 
@@ -101,6 +120,25 @@ public class BudgetService {
                 });
     }
 
+    /**
+     * Tính rollover: dư ngân sách tháng trước chuyển sang tháng này.
+     * Nếu tháng trước không có budget hoặc đã chi vượt → rollover = 0
+     */
+    private BigDecimal calculateRollover(Long userId, Long categoryId, int month, int year) {
+        // Tính tháng trước
+        int prevMonth = month == 1 ? 12 : month - 1;
+        int prevYear = month == 1 ? year - 1 : year;
+
+        return budgetRepository.findByUserIdAndCategoryIdAndMonthAndYear(
+                        userId, categoryId, prevMonth, prevYear)
+                .map(prevBudget -> {
+                    BigDecimal remaining = prevBudget.getRemainingAmount();
+                    // Chỉ rollover nếu dư (remaining > 0)
+                    return remaining.compareTo(BigDecimal.ZERO) > 0 ? remaining : BigDecimal.ZERO;
+                })
+                .orElse(BigDecimal.ZERO);
+    }
+
     private BudgetResponse toResponse(Budget budget) {
         return BudgetResponse.builder()
                 .id(budget.getId())
@@ -115,6 +153,9 @@ public class BudgetService {
                 .categoryId(budget.getCategory().getId())
                 .categoryIcon(budget.getCategory().getIcon())
                 .categoryColor(budget.getCategory().getColor())
+                .rolloverEnabled(Boolean.TRUE.equals(budget.getRolloverEnabled()))
+                .rolloverAmount(budget.getRolloverAmount())
+                .effectiveLimit(budget.getEffectiveLimit())
                 .build();
     }
 }
